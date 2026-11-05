@@ -1,7 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
 import { config } from './config.js';
 import { getDb } from './db/database.js';
 import { queueService } from './services/queueService.js';
@@ -15,11 +13,15 @@ import { attachmentsRouter } from './routes/attachments.js';
 
 const app = express();
 
-// Middleware
+// Determine allowed CORS origin: on Vercel the client is served from the
+// same domain via the top-level rewrite, so we can allow the CLIENT_URL.
+const clientOrigin = config.clientUrl || '*';
+
 app.use(cors({
-  origin: '*',
+  origin: clientOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 app.use(express.json({ limit: '20mb' }));
@@ -39,18 +41,6 @@ app.use('/api/settings', settingsRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/attachments', attachmentsRouter);
 
-// Serve built frontend in production or if available
-const clientDistPath = path.resolve(__dirname, '../../client/dist');
-if (fs.existsSync(clientDistPath)) {
-  app.use(express.static(clientDistPath));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
-      return next();
-    }
-    res.sendFile(path.join(clientDistPath, 'index.html'));
-  });
-}
-
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('[MailFlow Server Error]:', err);
@@ -68,7 +58,11 @@ try {
   console.error('❌ Failed to initialize database:', e);
 }
 
-// Start server
-app.listen(config.port, () => {
-  console.log(`🚀 MailFlow Server running at http://localhost:${config.port}`);
-});
+// Start server (not used by Vercel, but needed for local development)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(config.port, () => {
+    console.log(`🚀 MailFlow Server running at http://localhost:${config.port}`);
+  });
+}
+
+export default app;
