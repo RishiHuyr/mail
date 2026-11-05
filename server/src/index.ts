@@ -13,8 +13,6 @@ import { attachmentsRouter } from './routes/attachments.js';
 
 const app = express();
 
-// Determine allowed CORS origin: on Vercel the client is served from the
-// same domain via the top-level rewrite, so we can allow the CLIENT_URL.
 const clientOrigin = config.clientUrl || '*';
 
 app.use(cors({
@@ -58,8 +56,8 @@ try {
   console.error('❌ Failed to initialize database:', e);
 }
 
-// Start server (not used by Vercel, but needed for local development)
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+// Start standalone server locally (disabled on Vercel Serverless)
+if (!process.env.VERCEL) {
   app.listen(config.port, () => {
     console.log(`🚀 MailFlow Server running at http://localhost:${config.port}`);
   });

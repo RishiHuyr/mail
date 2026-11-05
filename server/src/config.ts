@@ -5,12 +5,11 @@ import fs from 'fs';
 // Load .env (no-op on Vercel since env vars are injected directly)
 dotenv.config();
 
-// On Vercel, __dirname points to the serverless function's directory which is
-// read-only. Use /tmp for mutable data. The /tmp filesystem is ephemeral but
-// persists within a single function execution context.
+// On Vercel, serverless function environment is read-only except /tmp.
+// Use /tmp for mutable data when running in Vercel.
 const isVercel = !!process.env.VERCEL;
 
-const ROOT_DIR = path.resolve(__dirname, '..');
+const ROOT_DIR = process.cwd();
 const DATA_DIR = isVercel ? '/tmp/mailflow-data' : path.join(ROOT_DIR, 'data');
 const UPLOADS_DIR = isVercel ? '/tmp/mailflow-uploads' : path.join(ROOT_DIR, 'uploads');
 
@@ -42,8 +41,6 @@ export const config = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    // GOOGLE_REDIRECT_URI must point to the public /api/auth/google/callback URL.
-    // On Vercel set this to: https://<your-project>.vercel.app/api/auth/google/callback
     redirectUri:
       process.env.GOOGLE_REDIRECT_URI ||
       `${clientUrl}/api/auth/google/callback`,
