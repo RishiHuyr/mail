@@ -5,19 +5,25 @@ import fs from 'fs';
 // Load .env (no-op on Vercel since env vars are injected directly)
 dotenv.config();
 
+// On Vercel, __dirname points to the serverless function's directory which is
+// read-only. Use /tmp for mutable data. The /tmp filesystem is ephemeral but
+// persists within a single function execution context.
+const isVercel = !!process.env.VERCEL;
+
 const ROOT_DIR = path.resolve(__dirname, '..');
-const DATA_DIR = path.join(ROOT_DIR, 'data');
-const UPLOADS_DIR = path.join(ROOT_DIR, 'uploads');
+const DATA_DIR = isVercel ? '/tmp/mailflow-data' : path.join(ROOT_DIR, 'data');
+const UPLOADS_DIR = isVercel ? '/tmp/mailflow-uploads' : path.join(ROOT_DIR, 'uploads');
 
-// On Vercel, the filesystem is ephemeral — data/uploads directories may not
-// persist between function invocations. For production use, replace SQLite
-// with a hosted database (e.g. Vercel Postgres) and uploads with object storage.
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+// Ensure directories exist at startup
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (e) {
+  console.warn('[config] Could not create data/uploads dirs:', e);
 }
 
 // On Vercel, VERCEL_URL is auto-set to the deployment's hostname (no protocol).
@@ -50,4 +56,3 @@ export const config = {
   },
   clientUrl,
 };
-
