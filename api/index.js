@@ -4,3 +4,4 @@
 
 const serverModule = require('../server/dist/index.js');
 module.exports = serverModule.default || serverModule;
+
