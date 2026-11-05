@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
 */node_modules/
-package-lock.json
+
+# Vercel
+.vercel/
 
 # Production builds
 dist/
