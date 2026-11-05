@@ -25,10 +25,10 @@ try {
   console.warn('[config] Could not create data/uploads dirs:', e);
 }
 
-// On Vercel, VERCEL_URL is auto-set to the deployment's hostname (no protocol).
-// CLIENT_URL should be explicitly set to the full public URL of the project
-// (e.g. https://mail-rishi.vercel.app) so OAuth redirects work correctly.
+// In Vercel Services, APP_URL is injected by Vercel when bound to the 'app' service.
+// CLIENT_URL or VERCEL_URL can also be used as fallbacks.
 const clientUrl =
+  process.env.APP_URL ||
   process.env.CLIENT_URL ||
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173');
 

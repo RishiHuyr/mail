@@ -5,7 +5,7 @@ package-lock.json
 
 # Production builds
 dist/
-*/dist/
+!server/dist/
 
 # Environment variables & secrets
 .env
@@ -41,4 +41,3 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
-
